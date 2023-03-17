@@ -1,0 +1,14 @@
+{
+    "mysql": {
+        "database": "warehouse",
+        "user": "root",
+        "password": "",
+        "port": "3306",
+        "host": "localhost",
+        "dialect": "mysql"
+    },
+    "jwtKey": "j5ncfi8e4hsd",
+    "bcrypt": {
+        "saltRounds": 10
+    }
+}
