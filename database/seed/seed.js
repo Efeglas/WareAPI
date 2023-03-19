@@ -24,7 +24,6 @@ const seed = async () => {
         
         let password = await Database.models.PasswordModel.create({password: hash, UserId: admin.id});       
     });
-    //password: "$2b$10$6Rd.SgjNrQkUH/4arq8q0e4BuRtsY1a76i/SH876Zyso5QDBaTEtu",
 
     let adminRole = await Database.models.RoleModel.findOne({where: {name: "Admin"}});
     if (adminRole === null) {
