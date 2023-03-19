@@ -1,4 +1,6 @@
 const Database = require('../database.js');
+const { config } = require('../../config/config.js');
+const bcrypt = require('bcrypt');
 
 console.log(Database);
 
@@ -10,7 +12,6 @@ const seed = async () => {
     if (admin === null) {
         admin = await Database.models.UserModel.create({
             username: "admin",
-            password: "$2b$10$6Rd.SgjNrQkUH/4arq8q0e4BuRtsY1a76i/SH876Zyso5QDBaTEtu",
             email: "admin@admin.com",
             ownPW: 0,
             firstName: "Admin",
@@ -18,6 +19,12 @@ const seed = async () => {
             phone: "0630",
         });
     }
+
+    bcrypt.hash("admin", config.bcrypt.saltRounds, async (err, hash) => {
+        
+        let password = await Database.models.PasswordModel.create({password: hash, UserId: admin.id});       
+    });
+    //password: "$2b$10$6Rd.SgjNrQkUH/4arq8q0e4BuRtsY1a76i/SH876Zyso5QDBaTEtu",
 
     let adminRole = await Database.models.RoleModel.findOne({where: {name: "Admin"}});
     if (adminRole === null) {
