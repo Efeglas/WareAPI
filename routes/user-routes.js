@@ -53,6 +53,24 @@ router.post('/login', async (req, res, next) => {
     });
 });
 
+router.post('/logout', async (req, res, next) => {
+  const data = req.body;
+
+  //TODO validate JSON
+  //TODO validate data
+
+  let resultUser = await Database.models.UserModel.findOne({
+    attributes: ['id'], where: {username: data.username}
+  });
+  const plainResultUser = resultUser.get({ plain: true });
+
+  let invalidateDate = getCorrectedDate(1);
+  invalidateDate.setSeconds(invalidateDate.getSeconds() - 5);
+    
+  const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: plainResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
+  res.json({ message: "Logged out successfully" });
+});
+
 router.post('/register', async (req, res, next) => {
     const data = req.body;
 
@@ -96,31 +114,7 @@ router.get('/test', async (req, res, next) => {
     }
   }); */
   
-  
-
-  
   res.json({ token: generateRefreshToken() });
 });
-
-const init = async () => {
-
-    try {     
-      setTimeout(async () => {
-
-        const UserModel = Database.models.UserModel;
-        const user = await UserModel.create({ 
-          firstName: "Attila", 
-          lastName: "Gábor", 
-          username: "asdf",
-          phone: "06305867770",
-          password: "12345",
-        });
-        console.log(user.id);
-      }, 3000);
-
-    } catch (error) {
-      console.error("Cannot create user:", error.message);
-    } 
-}
 
 module.exports = router;

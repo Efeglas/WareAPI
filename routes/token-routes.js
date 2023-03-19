@@ -8,8 +8,9 @@ const { Op } = require('sequelize');
 
 router.post('/', async (req, res, next) => {
     const data = req.body;
-    //data.username
-    //data.refreshToken
+    
+    //TODO validate JSON
+    //TODO validate data
 
     let resultUser = await Database.models.UserModel.findOne({
         attributes: ['id', 'username'], include: [{model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
