@@ -5,9 +5,13 @@ const { config } = require('../config/config.js');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
+const { generateRefreshToken, getCorrectedDate } = require('../utility/utility.js');
 
 router.post('/login', async (req, res, next) => {
     const data = req.body;
+
+    //TODO JSON validálás
+    //TODO ADAT VALIDÁLÁS
 
     let resultUser = await Database.models.UserModel.findOne({
       attributes: ['id', 'username'], include: [{model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, {model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
@@ -97,26 +101,6 @@ router.get('/test', async (req, res, next) => {
   
   res.json({ token: generateRefreshToken() });
 });
-
-const getCorrectedDate = (hoursToCorrect) => {
-  let currentDate = new Date();
-  currentDate.setHours(currentDate.getHours() + hoursToCorrect);
-  return currentDate;
-}
-
-const generateRefreshToken = () => {
-
-  const randBegining = Math.random();
-  const randEnd = Math.random();
-
-  const strBegining = randBegining.toString(16);
-  const hexBegining = strBegining.substr(2);
-
-  const strEnd = randEnd.toString(16);
-  const hexEnd = strEnd.substr(2);
-
-  return `${hexBegining}.${hexEnd}`;
-}
 
 const init = async () => {
 
