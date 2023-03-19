@@ -7,6 +7,7 @@ const bcrypt = require('bcrypt');
 
 router.post('/', async (req, res, next) => {
     const data = req.body;
+    
 
     res.json({ data: data.refreshToken });
 });

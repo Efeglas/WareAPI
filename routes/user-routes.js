@@ -4,20 +4,49 @@ const jwToken = require('jsonwebtoken');
 const { config } = require('../config/config.js');
 const router = express.Router();
 const bcrypt = require('bcrypt');
+const { Op } = require('sequelize');
 
 router.post('/login', async (req, res, next) => {
     const data = req.body;
 
-    jwt.sign({
-        data: 'foobar'
-      }, config.jwtKey, { expiresIn: '1h' });
+    let resultUser = await Database.models.UserModel.findOne({
+      attributes: ['id', 'username'], include: [{model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, {model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
+    });
 
-    try {
-        init();
-          
-    } catch (error) {
-      next(error);
-    }
+    const planResultUser = resultUser.get({ plain: true });
+    const passwordHash = planResultUser["Passwords"][0].password;
+    
+    bcrypt.compare(data.password, passwordHash, async (err, result) => {
+      
+      if (err) {
+        res.status(500).json({ message: "Something went wrong" });
+      } else { 
+        if (result) {
+              
+          let token = jwToken.sign({
+            id: planResultUser.id,
+            username: planResultUser.username,
+            role: planResultUser.Role.id,
+            roleName: planResultUser.Role.name            
+          }, config.jwtKey, { expiresIn: '15m' });
+    
+          const refToken = generateRefreshToken();
+
+          let refreshTokenValidDate = getCorrectedDate(1);         
+          refreshTokenValidDate.setDate(refreshTokenValidDate.getDate() + 7);
+    
+          let invalidateDate = getCorrectedDate(1);
+          invalidateDate.setSeconds(invalidateDate.getSeconds() - 5);
+    
+          const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: planResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
+          const savedRefToken = await Database.models.RefreshTokenModel.create({ token: refToken, valid: refreshTokenValidDate, UserId: planResultUser.id });
+    
+          res.json({ message: "Successful login", data: {token: token, refreshToken: refToken, username: planResultUser.username, roleName: planResultUser.Role.name} });
+        } else {
+          res.json({ message: "Invalid username or password" });
+        }
+      }
+    });
 });
 
 router.post('/register', async (req, res, next) => {
@@ -62,24 +91,32 @@ router.get('/test', async (req, res, next) => {
       
     }
   }); */
-
-  const generateRefreshToken = () =>{
-
-    const randBegining = Math.random();
-    const randEnd = Math.random();
-
-    const strBegining = randBegining.toString(16);
-    const hexBegining = strBegining.substr(2);
-
-    const strEnd = randEnd.toString(16);
-    const hexEnd = strEnd.substr(2);
-
-    return `${hexBegining}.${hexEnd}`;
-  }
+  
+  
 
   
   res.json({ token: generateRefreshToken() });
 });
+
+const getCorrectedDate = (hoursToCorrect) => {
+  let currentDate = new Date();
+  currentDate.setHours(currentDate.getHours() + hoursToCorrect);
+  return currentDate;
+}
+
+const generateRefreshToken = () => {
+
+  const randBegining = Math.random();
+  const randEnd = Math.random();
+
+  const strBegining = randBegining.toString(16);
+  const hexBegining = strBegining.substr(2);
+
+  const strEnd = randEnd.toString(16);
+  const hexEnd = strEnd.substr(2);
+
+  return `${hexBegining}.${hexEnd}`;
+}
 
 const init = async () => {
 
