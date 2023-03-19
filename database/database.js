@@ -72,7 +72,7 @@ class Database {
     
             //!this.sequelize.sync({ alter: true });
                 
-            this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel};
+            this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel, RefreshTokenModel};
 
         } catch (error) {
             console.error('Unable to connect to the database:', error.parent.sqlMessage);
