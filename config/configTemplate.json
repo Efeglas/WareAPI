@@ -1,0 +1,14 @@
+{
+    "mysql": {
+        "database": "database",
+        "user": "user",
+        "password": "password",
+        "port": "port",
+        "host": "host",
+        "dialect": "database dialect"
+    },
+    "jwtKey": "secretkey",
+    "bcrypt": {
+        "saltRounds": 2
+    }
+}
