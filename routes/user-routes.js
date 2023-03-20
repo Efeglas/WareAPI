@@ -5,7 +5,7 @@ const { config } = require('../config/config.js');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
-const { generateRefreshToken, getCorrectedDate } = require('../utility/utility.js');
+const { generateRefreshToken, getCorrectedDate, toNormalForm, generate2Char, generateTemporaryPass } = require('../utility/utility.js');
 
 router.post('/login', async (req, res, next) => {
     const data = req.body;
@@ -14,7 +14,7 @@ router.post('/login', async (req, res, next) => {
     //TODO ADAT VALIDÁLÁS
 
     let resultUser = await Database.models.UserModel.findOne({
-      attributes: ['id', 'username'], include: [{model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, {model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
+      attributes: ['id', 'username', 'ownPw', 'firstName', 'lastName'], include: [{model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, {model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
     });
 
     const planResultUser = resultUser.get({ plain: true });
@@ -45,7 +45,7 @@ router.post('/login', async (req, res, next) => {
           const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: planResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
           const savedRefToken = await Database.models.RefreshTokenModel.create({ token: refToken, valid: refreshTokenValidDate, UserId: planResultUser.id });
     
-          res.json({ message: "Successful login", data: {token: token, refreshToken: refToken, username: planResultUser.username, roleName: planResultUser.Role.name} });
+          res.json({ message: "Successful login", data: {token: token, refreshToken: refToken, username: planResultUser.username, roleName: planResultUser.Role.name, ownPw: planResultUser.ownPw, fullName: `${planResultUser.lastName} ${planResultUser.firstName}`} });
         } else {
           res.json({ message: "Invalid username or password" });
         }
@@ -73,13 +73,29 @@ router.post('/logout', async (req, res, next) => {
 
 router.post('/register', async (req, res, next) => {
     const data = req.body;
+    
+    let user = await generateUsername(data.lastname);
 
-    try {
+    let tempPassword = generateTemporaryPass();
+
+    let newUser = await Database.models.UserModel.create({
+      username: user,
+      email: data.email,
+      ownPW: 0,
+      firstName: data.firstname,
+      lastName: data.lastname,
+      phone: data.phone,
+      RoleId: data.role
+    });
+
+    bcrypt.hash(tempPassword, config.bcrypt.saltRounds, async (err, hash) => {
         
-          
-    } catch (error) {
-      next(error);
-    }
+      let password = await Database.models.PasswordModel.create({password: hash, UserId: newUser.id});     
+    });
+
+    console.log(`SMTP: user: ${user} tempPass: ${tempPassword}`);
+
+    res.json({ message: "User created", user: user,  tempPassword: tempPassword}); 
 });
 
 router.get('/test', async (req, res, next) => {
@@ -116,5 +132,33 @@ router.get('/test', async (req, res, next) => {
   
   res.json({ token: generateRefreshToken() });
 });
+
+const generateUsername = async (lastName) => {
+
+  let number = 1;     
+  let userBegining = toNormalForm(lastName.substring(0, 2));
+  let randomChars = generate2Char();
+  let userFix = "hrt";
+  
+  let userExists = null;
+
+  do {
+    
+    let builtUsername = `${userBegining}${randomChars}${number}${userFix}`;
+
+    userExists = await Database.models.UserModel.findOne({where: {username: builtUsername}});
+
+    if (userExists === null) {         
+      return builtUsername.toLowerCase();       
+    } else {
+      number++;
+      if (number > 9) {
+        number = 1;
+        randomChars = generate2Char();
+      }
+    }
+  } while (userExists !== null);
+
+}
 
 module.exports = router;
