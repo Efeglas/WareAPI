@@ -14,43 +14,65 @@ router.post('/login', async (req, res, next) => {
     //TODO ADAT VALIDÁLÁS
 
     let resultUser = await Database.models.UserModel.findOne({
-      attributes: ['id', 'username', 'ownPw', 'firstName', 'lastName'], include: [{model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, {model: Database.models.RoleModel, attributes: ['id', 'name']}], where: {username: data.username}
+      attributes: ['id', 'username', 'ownPw', 'firstName', 'lastName'], 
+      include: [
+        {model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, 
+        {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, attributes: ['id', 'name'], where: {visible: 1}}]}
+      ], 
+      where: {username: data.username}
     });
-
-    const planResultUser = resultUser.get({ plain: true });
-    const passwordHash = planResultUser["Passwords"][0].password;
     
-    bcrypt.compare(data.password, passwordHash, async (err, result) => {
+    if (resultUser === null) {
+      res.json({ message: "Invalid username or password" });
+    } else {
+
+      const planResultUser = resultUser.get({ plain: true });
+      console.log();
+      const permissionArray = planResultUser.Role.Permissions.map((perm) =>{
+        return perm.id;
+      });
+      const passwordHash = planResultUser["Passwords"][0].password;
       
-      if (err) {
-        res.status(500).json({ message: "Something went wrong" });
-      } else { 
-        if (result) {
-              
-          let token = jwToken.sign({
-            id: planResultUser.id,
-            username: planResultUser.username,
-            role: planResultUser.Role.id,
-            roleName: planResultUser.Role.name            
-          }, config.jwtKey, { expiresIn: '15m' });
-    
-          const refToken = generateRefreshToken();
-
-          let refreshTokenValidDate = getCorrectedDate(1);         
-          refreshTokenValidDate.setDate(refreshTokenValidDate.getDate() + 7);
-    
-          let invalidateDate = getCorrectedDate(1);
-          invalidateDate.setSeconds(invalidateDate.getSeconds() - 5);
-    
-          const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: planResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
-          const savedRefToken = await Database.models.RefreshTokenModel.create({ token: refToken, valid: refreshTokenValidDate, UserId: planResultUser.id });
-    
-          res.json({ message: "Successful login", data: {token: token, refreshToken: refToken, username: planResultUser.username, roleName: planResultUser.Role.name, ownPw: planResultUser.ownPw, fullName: `${planResultUser.lastName} ${planResultUser.firstName}`} });
-        } else {
-          res.json({ message: "Invalid username or password" });
+      bcrypt.compare(data.password, passwordHash, async (err, result) => {
+        
+        if (err) {
+          res.status(500).json({ message: "Something went wrong" });
+        } else { 
+          if (result) {
+                
+            let token = jwToken.sign({
+              id: planResultUser.id,
+              username: planResultUser.username,
+              role: planResultUser.Role.id,
+              roleName: planResultUser.Role.name                    
+            }, config.jwtKey, { expiresIn: '15m' });
+      
+            const refToken = generateRefreshToken();
+  
+            let refreshTokenValidDate = getCorrectedDate(1);         
+            refreshTokenValidDate.setDate(refreshTokenValidDate.getDate() + 7);
+      
+            let invalidateDate = getCorrectedDate(1);
+            invalidateDate.setSeconds(invalidateDate.getSeconds() - 5);
+      
+            const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: planResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
+            const savedRefToken = await Database.models.RefreshTokenModel.create({ token: refToken, valid: refreshTokenValidDate, UserId: planResultUser.id });
+      
+            res.json({ message: "Successful login", data: {
+              token: token, 
+              refreshToken: refToken, 
+              username: planResultUser.username, 
+              roleName: planResultUser.Role.name, 
+              ownPw: planResultUser.ownPw, 
+              fullName: `${planResultUser.lastName} ${planResultUser.firstName}`,
+              permissions: permissionArray
+            } });
+          } else {
+            res.json({ message: "Invalid username or password" });
+          }
         }
-      }
-    });
+      });
+    }
 });
 
 router.post('/logout', async (req, res, next) => {
