@@ -34,6 +34,7 @@ class Database {
         this.sequelize = new Sequelize(database, user, password, {
             host: host,
             dialect: dialect,
+            timezone:"+01:00"
         });
             
         try {

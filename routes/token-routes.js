@@ -29,20 +29,23 @@ router.post('/', async (req, res, next) => {
             username: planResultUser.username,
             role: planResultUser.Role.id,
             roleName: planResultUser.Role.name            
-          }, config.jwtKey, { expiresIn: '15m' });
+          }, config.jwtKey, { expiresIn: `${config.jwtTokenExpMinutes}m` });
     
           const refToken = generateRefreshToken();
 
-          let refreshTokenValidDate = getCorrectedDate(1);         
-          refreshTokenValidDate.setDate(refreshTokenValidDate.getDate() + 7);
+          let refreshTokenValidDate = new Date();         
+          refreshTokenValidDate.setDate(refreshTokenValidDate.getDate() + config.refreshTokenValidDay);
     
-          let invalidateDate = getCorrectedDate(1);
+          let invalidateDate = new Date();
           invalidateDate.setSeconds(invalidateDate.getSeconds() - 5);
+
+          let tokenExpireTime = new Date();
+          tokenExpireTime.setMinutes(tokenExpireTime.getMinutes() + config.jwtTokenExpMinutes);
     
           const updatedRefTokens = await Database.models.RefreshTokenModel.update({valid: invalidateDate}, {where: {UserId: planResultUser.id, valid: {[Op.gt]: getCorrectedDate(1)}}});
           const savedRefToken = await Database.models.RefreshTokenModel.create({ token: refToken, valid: refreshTokenValidDate, UserId: planResultUser.id });
 
-          res.json({ message: "New token provided", data: {token: token, refreshToken: refToken, username: planResultUser.username, roleName: planResultUser.Role.name} });
+          res.json({ message: "New token provided", data: {token: token, refreshToken: refToken, tokenExpire: tokenExpireTime.getTime()} });
     }
 });
 

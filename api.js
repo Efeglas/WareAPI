@@ -6,6 +6,7 @@ const orderRoutes = require('./routes/order-routes');
 const tokenRoutes = require('./routes/token-routes');
 
 const app = express();
+console.log(new Date());
 
 app.use(bodyParser.json());
 app.use((req, res, next) => {
