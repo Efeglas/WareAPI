@@ -16,11 +16,7 @@ class UserModel extends Model {
                 email: {
                     type: DataTypes.STRING,
                     allowNull: false
-                },
-                ownPw: {
-                    type: DataTypes.BOOLEAN,
-                    defaultValue: false
-                },
+                },               
                 firstName: {
                     type: DataTypes.STRING,
                     allowNull: false

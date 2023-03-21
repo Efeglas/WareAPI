@@ -12,10 +12,10 @@ class PasswordModel extends Model {
                     type: DataTypes.STRING,
                     allowNull: false
                 },
-                oldPw: {
+                ownPw: {
                     type: DataTypes.BOOLEAN,
                     defaultValue: false
-                },               
+                },              
             },
             {
                 sequelize,

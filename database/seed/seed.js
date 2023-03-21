@@ -13,16 +13,15 @@ const seed = async () => {
         admin = await Database.models.UserModel.create({
             username: "admin",
             email: "admin@admin.com",
-            ownPW: 0,
             firstName: "Admin",
             lastName: "User",
             phone: "0630",
         });
     }
 
-    bcrypt.hash("admin", config.bcrypt.saltRounds, async (err, hash) => {
+    bcrypt.hash("adminuser", config.bcrypt.saltRounds, async (err, hash) => {
         
-        let password = await Database.models.PasswordModel.create({password: hash, UserId: admin.id});       
+        let password = await Database.models.PasswordModel.create({password: hash, ownPW: 0, UserId: admin.id});       
     });
 
     let adminRole = await Database.models.RoleModel.findOne({where: {name: "Admin"}});
