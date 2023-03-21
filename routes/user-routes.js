@@ -7,6 +7,91 @@ const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const { generateRefreshToken, getCorrectedDate, toNormalForm, generate2Char, generateTemporaryPass } = require('../utility/utility.js');
 
+
+router.post('/', async (req, res, next) => {
+    const data = req.body;
+    //data.token
+    //data.userId
+
+    
+    let decodedToken = null;
+    try {      
+      decodedToken = jwToken.verify(data.token, config.jwtKey);
+    } catch (error) {      
+      res.status(406).json({ message: "Wrong token", error: error.message });
+      return;
+    }
+
+    if (decodedToken !== null) {
+      
+      let resultUser = await Database.models.UserModel.findOne({
+        attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'phone'], 
+        include: [{model: Database.models.RoleModel, attributes: ['name']}],     
+        where: {id: data.userId}
+      });
+  
+      if (resultUser !== null) {
+        const plainResultUser = resultUser.get({ plain: true });
+        res.json({ message: "User data found", data: plainResultUser });
+      } else {
+        res.status(406).json({ message: "User data not found" });
+      }
+    } 
+
+})
+
+router.post('/password', async (req, res, next) => {
+  const data = req.body;
+
+  //data.username
+  //data.oldpass
+  //data.newpass
+
+  let resultUser = await Database.models.UserModel.findOne({
+    attributes: ['id', 'username', 'firstName', 'lastName'], 
+    include: [
+      {model: Database.models.PasswordModel, attributes: ['password']},      
+    ], 
+    where: {username: data.username}
+  });
+
+  if (resultUser !== null) {
+
+    if (data.oldpass === data.newpass) {
+      res.status(406).json({ message: "Old password can't match new password" });     
+    } else {
+      
+      const plainResultUser = resultUser.get({ plain: true });
+      bcrypt.compare(data.oldpass, plainResultUser.Passwords[0].password, async (err, result) => {
+        
+        if (err) {
+          res.status(500).json({ message: "Something went wrong" });
+        } else { 
+  
+          if (result) {
+            
+            bcrypt.hash(data.newpass, config.bcrypt.saltRounds, async (errHash, hash) => {
+              
+              if (errHash) {
+                res.status(500).json({ message: "Something went wrong" });
+              } else { 
+                let password = await Database.models.PasswordModel.update({password: hash, ownPw: 1}, {where: {UserId: plainResultUser.id}});
+                res.json({ message: "Password changed" });     
+              }
+            });
+          } else {
+            res.status(406).json({ message: "Old password is invalid" });           
+          }
+        }       
+      })    
+    }
+    
+  } else {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+
+});
+
 router.post('/login', async (req, res, next) => {
     const data = req.body;
 
@@ -14,9 +99,9 @@ router.post('/login', async (req, res, next) => {
     //TODO ADAT VALIDÁLÁS
 
     let resultUser = await Database.models.UserModel.findOne({
-      attributes: ['id', 'username', 'ownPw', 'firstName', 'lastName'], 
+      attributes: ['id', 'username', 'firstName', 'lastName'], 
       include: [
-        {model: Database.models.PasswordModel, attributes: ['password', 'oldPw'], where: {oldPw: 0}}, 
+        {model: Database.models.PasswordModel, attributes: ['password', 'ownPw']}, 
         {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, attributes: ['id', 'name'], where: {visible: 1}}]}
       ], 
       where: {username: data.username}
@@ -67,13 +152,14 @@ router.post('/login', async (req, res, next) => {
               refreshToken: refToken, 
               username: planResultUser.username, 
               roleName: planResultUser.Role.name, 
-              ownPw: planResultUser.ownPw, 
+              ownPw: planResultUser["Passwords"][0].ownPw, 
               fullName: `${planResultUser.lastName} ${planResultUser.firstName}`,
               permissions: permissionArray,
-              tokenExpire: tokenExpireTime.getTime()
+              tokenExpire: tokenExpireTime.getTime(),
+              userId: planResultUser.id
             } });
           } else {
-            res.json({ message: "Invalid username or password" });
+            res.status(406).json({ message: "Invalid username or password" });
           }
         }
       });
@@ -117,7 +203,7 @@ router.post('/register', async (req, res, next) => {
 
     bcrypt.hash(tempPassword, config.bcrypt.saltRounds, async (err, hash) => {
         
-      let password = await Database.models.PasswordModel.create({password: hash, UserId: newUser.id});     
+      let password = await Database.models.PasswordModel.create({password: hash, ownPw: 0, UserId: newUser.id});     
     });
 
     console.log(`SMTP: user: ${user} tempPass: ${tempPassword}`);
@@ -127,13 +213,13 @@ router.post('/register', async (req, res, next) => {
 
 router.get('/test', async (req, res, next) => {
     
-    /* bcrypt.hash("admin", config.bcrypt.saltRounds, function(err, hash) {
+    bcrypt.hash("admin", config.bcrypt.saltRounds, function(err, hash) {
         //console.log(hash);
         bcrypt.compare("admin", hash, function(err1, result) {
             
             res.json({ hash: hash, compare: result });
         });
-    }); */
+    }); 
 
   /* let token = jwToken.sign({
       user: 'Efeglass',
@@ -157,10 +243,10 @@ router.get('/test', async (req, res, next) => {
     }
   }); */
 
-  let data = await Database.models.RefreshTokenModel.findOne({where: {id: 72}});
+  /* let data = await Database.models.RefreshTokenModel.findOne({where: {id: 72}});
   let valami = data.get({ plain: true });
   
-  res.json({ token: valami });
+  res.json({ token: valami }); */
 });
 
 const generateUsername = async (lastName) => {
