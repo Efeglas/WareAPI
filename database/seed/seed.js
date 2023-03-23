@@ -36,7 +36,10 @@ const seed = async () => {
     let permissions = await Database.models.PermissionModel.findAll();
     if (permissions.length === 0) {
 
-        const permissions = [{name: "Admin", description: "Admin"}];
+        const permissions = [
+            {name: "Roles", description: "Access role page. Add, edit, delete roles. Set permissions to roles."},
+            {name: "Users", description: "Access user page. Register, edit, remove users. Set user roles. Reset password for users."},
+        ];
         const addedPermissions = [];
         
         for (const per of permissions) {
