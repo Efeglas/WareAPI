@@ -13,7 +13,6 @@ router.post('/', async (req, res, next) => {
     //data.token
     //data.userId
 
-    
     let decodedToken = null;
     try {      
       decodedToken = jwToken.verify(data.token, config.jwtKey);
@@ -38,6 +37,45 @@ router.post('/', async (req, res, next) => {
       }
     } 
 
+})
+
+router.post('/get', async (req, res, next) => {
+  const data = req.body;
+  
+  let decodedToken = null;
+  try {      
+    decodedToken = jwToken.verify(data.token, config.jwtKey);
+  } catch (error) {      
+    res.status(406).json({ message: "Wrong token", error: error.message });
+    return;
+  }
+
+  if (decodedToken !== null) {
+      
+      const permissions = await Database.models.RolePermissionModel.findAll({raw: true, nest: true, attributes: ['PermissionId'], where: {RoleId: decodedToken.role, visible: 1}});
+      const permissionArray = permissions.map((permNumber) => {
+          return permNumber.PermissionId;
+      });
+
+      const accessRight = 2;
+      
+      if (permissionArray.includes(accessRight)) {
+
+          const users = await Database.models.UserModel.findAll({                
+              attributes: ['id', "username", "email", "firstName", "lastName", "phone"], 
+              where: {visible: 1}, 
+              include: [{model: Database.models.RoleModel}]             
+          });                  
+
+          res.json({ message: "Users accessed", data: users});
+          return
+
+      } else {
+          res.status(401).json({ message: "Access denied"});
+          return;
+      }
+
+  }
 })
 
 router.post('/password', async (req, res, next) => {
@@ -209,6 +247,14 @@ router.post('/register', async (req, res, next) => {
     console.log(`SMTP: user: ${user} tempPass: ${tempPassword}`);
 
     res.json({ message: "User created", user: user,  tempPassword: tempPassword}); 
+});
+
+router.post('/delete', async (req, res, next) => {
+  //TODO
+});
+
+router.post('/edit', async (req, res, next) => {
+  //TODO
 });
 
 router.get('/test', async (req, res, next) => {
