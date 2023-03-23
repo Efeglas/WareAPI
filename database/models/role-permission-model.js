@@ -7,11 +7,7 @@ class RolePermissionModel extends Model {
                     type: DataTypes.INTEGER,
                     autoIncrement: true,
                     primaryKey: true
-                },                             
-                visible: {
-                    type: DataTypes.BOOLEAN,
-                    defaultValue: true
-                },               
+                }                                                          
             },
             {
                 sequelize,

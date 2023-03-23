@@ -15,11 +15,7 @@ class PermissionModel extends Model {
                 description: {
                     type: DataTypes.STRING,
                     allowNull: false
-                },
-                visible: {
-                    type: DataTypes.BOOLEAN,
-                    defaultValue: true
-                },               
+                }                        
             },
             {
                 sequelize,
