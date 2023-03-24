@@ -28,7 +28,6 @@ module.exports.hasAccess = async (req, res, next) => {
         for (const right of req.midw.accessRight) {  
             console.log()  
             if (permissionArray.includes(right)) {
-                console.log("vanik");
                   next();
                   return;
             }
