@@ -5,85 +5,52 @@ const { config } = require('../config/config.js');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
-const { generateRefreshToken, getCorrectedDate, toNormalForm, generate2Char, generateTemporaryPass } = require('../utility/utility.js');
+const { 
+  generateRefreshToken, 
+  getCorrectedDate, 
+  toNormalForm, 
+  generate2Char, 
+  generateTemporaryPass 
+} = require('../utility/utility.js');
+const {
+  autenticated,
+  hasAccess,
+  accessRightRole,
+  accessRightUser
+} = require("../middleware/middleware.js");
 
 
-router.post('/', async (req, res, next) => {
+router.post('/', autenticated, async (req, res, next) => {
     const data = req.body;
-    //data.token
-    //data.userId
+ 
+    let resultUser = await Database.models.UserModel.findOne({
+      attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'phone'], 
+      include: [{model: Database.models.RoleModel, attributes: ['name']}],     
+      where: {id: data.userId}
+    });
 
-    let decodedToken = null;
-    try {      
-      decodedToken = jwToken.verify(data.token, config.jwtKey);
-    } catch (error) {      
-      res.status(406).json({ message: "Wrong token", error: error.message });
-      return;
+    if (resultUser !== null) {
+      const plainResultUser = resultUser.get({ plain: true });
+      res.json({ message: "User data found", data: plainResultUser });
+    } else {
+      res.status(406).json({ message: "User data not found" });
     }
-
-    if (decodedToken !== null) {
-      
-      let resultUser = await Database.models.UserModel.findOne({
-        attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'phone'], 
-        include: [{model: Database.models.RoleModel, attributes: ['name']}],     
-        where: {id: data.userId}
-      });
-  
-      if (resultUser !== null) {
-        const plainResultUser = resultUser.get({ plain: true });
-        res.json({ message: "User data found", data: plainResultUser });
-      } else {
-        res.status(406).json({ message: "User data not found" });
-      }
-    } 
-
 })
 
-router.post('/get', async (req, res, next) => {
+router.post('/get', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
   const data = req.body;
   
-  let decodedToken = null;
-  try {      
-    decodedToken = jwToken.verify(data.token, config.jwtKey);
-  } catch (error) {      
-    res.status(406).json({ message: "Wrong token", error: error.message });
-    return;
-  }
+  const users = await Database.models.UserModel.findAll({                
+      attributes: ['id', "username", "email", "firstName", "lastName", "phone"], 
+      where: {visible: 1}, 
+      include: [{model: Database.models.RoleModel}]             
+  });                  
 
-  if (decodedToken !== null) {
-      
-      const permissions = await Database.models.RolePermissionModel.findAll({raw: true, nest: true, attributes: ['PermissionId'], where: {RoleId: decodedToken.role, visible: 1}});
-      const permissionArray = permissions.map((permNumber) => {
-          return permNumber.PermissionId;
-      });
-
-      const accessRight = 2;
-      
-      if (permissionArray.includes(accessRight)) {
-
-          const users = await Database.models.UserModel.findAll({                
-              attributes: ['id', "username", "email", "firstName", "lastName", "phone"], 
-              where: {visible: 1}, 
-              include: [{model: Database.models.RoleModel}]             
-          });                  
-
-          res.json({ message: "Users accessed", data: users});
-          return
-
-      } else {
-          res.status(401).json({ message: "Access denied"});
-          return;
-      }
-
-  }
+  res.json({ message: "Users accessed", data: users});
 })
 
-router.post('/password', async (req, res, next) => {
+router.post('/password', autenticated, async (req, res, next) => {
   const data = req.body;
-
-  //data.username
-  //data.oldpass
-  //data.newpass
 
   let resultUser = await Database.models.UserModel.findOne({
     attributes: ['id', 'username', 'firstName', 'lastName'], 
@@ -130,20 +97,34 @@ router.post('/password', async (req, res, next) => {
 
 });
 
+router.post('/password/reset',  autenticated, accessRightRole, hasAccess, async (req, res, next) => {
+
+  const data = req.body;
+
+  let tempPassword = generateTemporaryPass();
+  bcrypt.hash(tempPassword, config.bcrypt.saltRounds, async (err, hash) => {                     
+    let password = await Database.models.PasswordModel.update({password: hash, ownPw: 0}, {where: {UserId: data.id}});     
+  });
+
+  console.log(`SMTP: username: ${data.username}, pass: ${tempPassword}`);
+
+  res.json({ message: "Permissions changed"});
+  
+})
+
 router.post('/login', async (req, res, next) => {
     const data = req.body;
-
-    //TODO JSON validálás
-    //TODO ADAT VALIDÁLÁS
 
     let resultUser = await Database.models.UserModel.findOne({
       attributes: ['id', 'username', 'firstName', 'lastName'], 
       include: [
         {model: Database.models.PasswordModel, attributes: ['password', 'ownPw']}, 
-        {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, attributes: ['id', 'name'], where: {visible: 1}}]}
+        {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, required:false, attributes: ['id', 'name'], where: {visible: 1}}]}
       ], 
-      where: {username: data.username}
+      where: {username: data.username, visible: 1}
     });
+
+    console.log(resultUser);
     
     if (resultUser === null) {
       res.json({ message: "Invalid username or password" });
@@ -157,6 +138,8 @@ router.post('/login', async (req, res, next) => {
       const passwordHash = planResultUser["Passwords"][0].password;
       
       bcrypt.compare(data.password, passwordHash, async (err, result) => {
+
+        console.log(result);
         
         if (err) {
           res.status(500).json({ message: "Something went wrong" });
@@ -207,9 +190,6 @@ router.post('/login', async (req, res, next) => {
 router.post('/logout', async (req, res, next) => {
   const data = req.body;
 
-  //TODO validate JSON
-  //TODO validate data
-
   let resultUser = await Database.models.UserModel.findOne({
     attributes: ['id'], where: {username: data.username}
   });
@@ -222,19 +202,18 @@ router.post('/logout', async (req, res, next) => {
   res.json({ message: "Logged out successfully" });
 });
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
     const data = req.body;
-    
-    let user = await generateUsername(data.lastname);
 
+    let user = await generateUsername(data.lastName);
+    
     let tempPassword = generateTemporaryPass();
 
     let newUser = await Database.models.UserModel.create({
       username: user,
       email: data.email,
-      ownPW: 0,
-      firstName: data.firstname,
-      lastName: data.lastname,
+      firstName: data.firstName,
+      lastName: data.lastName,
       phone: data.phone,
       RoleId: data.role
     });
@@ -246,53 +225,33 @@ router.post('/register', async (req, res, next) => {
 
     console.log(`SMTP: user: ${user} tempPass: ${tempPassword}`);
 
-    res.json({ message: "User created", user: user,  tempPassword: tempPassword}); 
+    res.json({ message: "User created, email sent"}); 
 });
 
-router.post('/delete', async (req, res, next) => {
-  //TODO
-});
-
-router.post('/edit', async (req, res, next) => {
-  //TODO
-});
-
-router.get('/test', async (req, res, next) => {
-    
-    bcrypt.hash("admin", config.bcrypt.saltRounds, function(err, hash) {
-        //console.log(hash);
-        bcrypt.compare("admin", hash, function(err1, result) {
-            
-            res.json({ hash: hash, compare: result });
-        });
-    }); 
-
-  /* let token = jwToken.sign({
-      user: 'Efeglass',
-      role: '1'
-    }, config.jwtKey, { expiresIn: '1m' }); */
-
-//"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiRWZlZ2xhc3MiLCJyb2xlIjoiMSIsImlhdCI6MTY3OTE1Nzk5MSwiZXhwIjoxNjc5MTU4MDUxfQ.tzGi4LXPaR09-NrSiYRDxlHlpTd4ua6BsYK90c0gPaw"
-  //let decoded = jwToken.verify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiRWZlZ2xhc3MiLCJyb2xlIjoiMSIsImlhdCI6MTY3OTE1Nzk5MSwiZXhwIjoxNjc5MTU4MDUxfQ.tzGi4LXPaR09-NrSiYRDxlHlpTd4ua6BsYK90c0gPaw", config.jwtKey);
-
-
-  /* jwt.verify("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiRWZlZ2xhc3MiLCJyb2xlIjoiMSIsImlhdCI6MTY3OTE1Nzk5MSwiZXhwIjoxNjc5MTU4MDUxfQ.tzGi4LXPaR09-NrSiYRDxlHlpTd4ua6BsYK90c0gPaw", config.jwtKey, (err, decoded) => {
-    //TokenExpiredError
-    //JsonWebTokenError
-    if (err) {
-      
-        //err = {
-        //  name: 'JsonWebTokenError',
-        //  message: 'jwt malformed'
-        //}
-      
-    }
-  }); */
-
-  /* let data = await Database.models.RefreshTokenModel.findOne({where: {id: 72}});
-  let valami = data.get({ plain: true });
+router.post('/delete', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
   
-  res.json({ token: valami }); */
+  const data = req.body;
+
+  let updatedUser = await Database.models.UserModel.update({            
+    visible: 0
+  }, {where: {id: data.id}});
+
+  res.json({ message: "User deleted"});
+});
+
+router.post('/edit', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
+  
+  const data = req.body;
+
+  let updatedUser = await Database.models.UserModel.update({            
+    email: data.email,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    phone: data.phone,
+    RoleId: data.role
+  }, {where: {id: data.id}});
+
+  res.json({ message: "User updated"});
 });
 
 const generateUsername = async (lastName) => {
