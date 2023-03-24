@@ -9,6 +9,14 @@ const PermissionModel = require('./models/permission-model.js');
 const RolePermissionModel = require('./models/role-permission-model.js');
 const RefreshTokenModel = require('./models/reftoken-model.js');
 
+const ItemInventoryModel = require("./models/item-inventory-model.js");
+const InventoryModel = require("./models/inventory-model.js");
+const ItemModel = require("./models/item-model.js");
+const MeasureModel = require("./models/measure-model.js");
+const ShelfModel = require("./models/shelf-model.js");
+const LayoutModel = require("./models/layout-model.js");
+const LayoutShelfModel = require("./models/layoutshelf-model.js");
+
 class Database {
     constructor() {
         this.init();
@@ -42,23 +50,25 @@ class Database {
             console.log('Connection has been established successfully.');
         
             //? force <-> alter
+            //!await UserModel.sync({ alter: true });  
+            //? USER AND ROLE HANDLING
             UserModel.init(this.sequelize);
-            //!await UserModel.sync({ alter: true });
-    
-            PasswordModel.init(this.sequelize);
-            //!await PasswordModel.sync({ alter: true });
-    
+            PasswordModel.init(this.sequelize);  
             RoleModel.init(this.sequelize);
-            //!await RoleModel.sync({ alter: true });
-    
-            PermissionModel.init(this.sequelize);
-            //!await PermissionModel.sync({ alter: true });
-           
+            PermissionModel.init(this.sequelize);         
             RolePermissionModel.init(this.sequelize);
-            //!await RolePermissionModel.sync({ alter: true });
-
             RefreshTokenModel.init(this.sequelize);
+
+            //? INVENTORI, ITEM, LAYOUT AND SHELF HANDLING
+            ItemInventoryModel.init(this.sequelize);
+            InventoryModel.init(this.sequelize);
+            ItemModel.init(this.sequelize);
+            MeasureModel.init(this.sequelize);
+            ShelfModel.init(this.sequelize);
+            LayoutModel.init(this.sequelize);
+            LayoutShelfModel.init(this.sequelize);
     
+            //? USER AND ROLE HANDLING RELATIONS
             UserModel.belongsTo(RoleModel);
             RoleModel.hasMany(UserModel);
     
@@ -72,8 +82,13 @@ class Database {
             PermissionModel.belongsToMany(RoleModel, { through: RolePermissionModel });
     
             //!this.sequelize.sync({ alter: true });
+
+            //? INVENTORI, ITEM, LAYOUT AND SHELF HANDLING RELATIONS
+            ItemModel.belongsToMany(InventoryModel, { through: ItemInventoryModel });
+            InventoryModel.belongsToMany(ItemModel, { through: ItemInventoryModel });
                 
-            this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel, RefreshTokenModel};
+            this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel, RefreshTokenModel,
+                ItemInventoryModel, InventoryModel, ItemModel, MeasureModel, ShelfModel, LayoutModel, LayoutShelfModel};
 
         } catch (error) {
             console.error('Unable to connect to the database:', error.parent.sqlMessage);
