@@ -20,7 +20,7 @@ module.exports.hasAccess = async (req, res, next) => {
 
     if (req.midw.accessRight !== undefined) {
         
-        const permissions = await Database.models.RolePermissionModel.findAll({raw: true, nest: true, attributes: ['PermissionId'], where: {RoleId: req.midw.decodedToken.role, visible: 1}});
+        const permissions = await Database.models.RolePermissionModel.findAll({raw: true, nest: true, attributes: ['PermissionId'], where: {RoleId: req.midw.decodedToken.role}});
         const permissionArray = permissions.map((permNumber) => {
             return permNumber.PermissionId;
         });
@@ -59,5 +59,12 @@ module.exports.accessRightUser = async (req, res, next) => {
 
     accessRightExists(req);
     req.midw.accessRight.push(2);
+    next();
+}
+
+module.exports.accessRightLayout = async (req, res, next) => {
+
+    accessRightExists(req);
+    req.midw.accessRight.push(3);
     next();
 }
