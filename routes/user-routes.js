@@ -119,7 +119,7 @@ router.post('/login', async (req, res, next) => {
       attributes: ['id', 'username', 'firstName', 'lastName'], 
       include: [
         {model: Database.models.PasswordModel, attributes: ['password', 'ownPw']}, 
-        {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, required:false, attributes: ['id', 'name'], where: {visible: 1}}]}
+        {model: Database.models.RoleModel, attributes: ['id', 'name'], include: [{model: Database.models.PermissionModel, required:false, attributes: ['id', 'name']}]}
       ], 
       where: {username: data.username, visible: 1}
     });
