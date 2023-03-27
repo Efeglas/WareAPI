@@ -68,3 +68,10 @@ module.exports.accessRightLayout = async (req, res, next) => {
     req.midw.accessRight.push(3);
     next();
 }
+
+module.exports.accessRightItem = async (req, res, next) => {
+
+    accessRightExists(req);
+    req.midw.accessRight.push(4);
+    next();
+}

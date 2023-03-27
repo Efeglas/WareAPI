@@ -7,6 +7,7 @@ const tokenRoutes = require('./routes/token-routes');
 const infoRoutes = require('./routes/info-routes');
 const roleRoutes = require('./routes/role-routes');
 const layoutRoutes = require('./routes/layout-routes');
+const itemRoutes = require('./routes/item-routes');
 
 const app = express();
 console.log(new Date());
@@ -25,6 +26,7 @@ app.use('/token', tokenRoutes);
 app.use('/info', infoRoutes);
 app.use('/role', roleRoutes);
 app.use('/layout', layoutRoutes);
+app.use('/item', itemRoutes);
 
 app.use((error, req, res, next) => {
   const status = error.status || 500;
