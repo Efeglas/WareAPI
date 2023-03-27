@@ -40,6 +40,7 @@ const seed = async () => {
             {name: "Roles", description: "Access role page. Add, edit, delete roles. Set permissions to roles."},
             {name: "Users", description: "Access user page. Register, edit, remove users. Set user roles. Reset password for users."},
             {name: "Layout", description: "Access layout page. Add, edit and delete layouts. Add, edit and delete shelves. Placing shelves."},
+            {name: "Item", description: "Access item page. Add, edit and delete items."},
         ];
         const addedPermissions = [];
         
