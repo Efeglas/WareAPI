@@ -75,3 +75,10 @@ module.exports.accessRightItem = async (req, res, next) => {
     req.midw.accessRight.push(4);
     next();
 }
+
+module.exports.accessRightInventory = async (req, res, next) => {
+
+    accessRightExists(req);
+    req.midw.accessRight.push(5);
+    next();
+}
