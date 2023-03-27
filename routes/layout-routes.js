@@ -65,6 +65,14 @@ router.post('/shelves/delete', autenticated, accessRightLayout, hasAccess, async
     }
 })
 
+router.post('/shelves/edit', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
+    const data = req.body;
+
+    const resultShelves = await Database.models.ShelfModel.update({name: data.name}, {where: {id: data.id}});
+    res.json({ message: "Shelf edited"});
+    return 
+})
+    
 router.post('/delete', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
     const data = req.body;
 
