@@ -12,7 +12,7 @@ const {
 
 router.post('/get', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
 
-    const result = await Database.models.ItemModel.findAll({attributes: ['id', 'name'], where: {visible: 1}, include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]});
+    const result = await Database.models.ItemModel.findAll({attributes: ['id', 'name', 'barcode'], where: {visible: 1}, include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]});
     res.json({ message: "Items accessed", data: result});
 })
 
@@ -25,14 +25,14 @@ router.post('/measure', autenticated, accessRightItem, hasAccess, async (req, re
 router.post('/add', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
 
     const data = req.body;
-    const item = await Database.models.ItemModel.create({name: data.name, MeasureId: data.measure});
+    const item = await Database.models.ItemModel.create({name: data.name, barcode: data.barcode, MeasureId: data.measure});
     res.json({ message: "Items added"});
 })
 
 router.post('/edit', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
 
     const data = req.body;
-    const item = await Database.models.ItemModel.update({name: data.name, MeasureId: data.measure}, {where: {id: data.id}});
+    const item = await Database.models.ItemModel.update({name: data.name, barcode: data.barcode, MeasureId: data.measure}, {where: {id: data.id}});
     res.json({ message: "Items edited"});
 })
 

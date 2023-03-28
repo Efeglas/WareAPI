@@ -9,6 +9,10 @@ class ItemModel extends Model {
                     autoIncrement: true,
                     primaryKey: true
                 },
+                barcode: {
+                    type: DataTypes.STRING,
+                    allowNull: false
+                },
                 name: {
                     type: DataTypes.STRING,
                     allowNull: false
