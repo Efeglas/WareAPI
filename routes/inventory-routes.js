@@ -23,4 +23,20 @@ router.post('/get', autenticated, accessRightInventory, hasAccess, async (req, r
     return 
 })
 
+router.post('/layout', autenticated, accessRightInventory, hasAccess, async (req, res, next) => {
+    
+    const data = req.body;
+
+    const resultLayout = await Database.models.LayoutModel.findOne({
+        where: {id: data.layout, visible: 1},
+        attributes: ['id', 'name', 'width', 'height'],
+        include: [
+            {model: Database.models.ShelfModel, attributes: ['id', 'name', 'x1', 'y1', 'x2', 'y2'], where: {visible: 1}}
+        ]
+    });
+
+    res.json({ message: "Layout accessed", layout: resultLayout});
+    return 
+})
+
 module.exports = router;
