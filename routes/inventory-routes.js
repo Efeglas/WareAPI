@@ -10,6 +10,37 @@ const {
     accessRightInventory
 } = require("../middleware/middleware.js");
 
+router.post('/home', autenticated, async (req, res, next) => {
+
+    const inventory = await Database.models.InventoryModel.findAll({
+        include: [
+            {model: Database.models.ItemModel, attributes: ['MeasureId']}
+        ]
+    });
+
+    const counts = {l:0,kg:0,m:0,pcs:0};
+
+    inventory.forEach((inv) => {
+        if (inv.Item.MeasureId === 1) {
+            counts.kg =  counts.kg + inv.quantity;
+        }
+        if (inv.Item.MeasureId === 2) {
+            counts.m =  counts.m + inv.quantity;
+        }
+        if (inv.Item.MeasureId === 3) {
+            counts.l =  counts.l + inv.quantity;
+        }
+        if (inv.Item.MeasureId === 4) {
+            counts.pcs =  counts.pcs + inv.quantity;
+        }
+    });
+    
+    const user = await Database.models.UserModel.findAndCountAll({ where: {visible: 1} });
+    
+    res.json({ message: "Home screen", l:counts.l, m:counts.m, kg:counts.kg, pcs:counts.pcs, user:user.count, orderout:102, orderin:106});
+    return 
+})
+
 router.post('/get', autenticated, accessRightInventory, hasAccess, async (req, res, next) => {
     
     const resultInventory = await Database.models.InventoryModel.findAll({
