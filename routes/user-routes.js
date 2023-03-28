@@ -175,6 +175,7 @@ router.post('/login', async (req, res, next) => {
               roleName: planResultUser.Role.name, 
               ownPw: planResultUser["Passwords"][0].ownPw, 
               fullName: `${planResultUser.lastName} ${planResultUser.firstName}`,
+              firstName: planResultUser.firstName,
               permissions: permissionArray,
               tokenExpire: tokenExpireTime.getTime(),
               userId: planResultUser.id
