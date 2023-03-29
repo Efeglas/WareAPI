@@ -42,6 +42,7 @@ const seed = async () => {
             {name: "Layout", description: "Access layout page. Add, edit and delete layouts. Add, edit and delete shelves. Placing shelves."},
             {name: "Item", description: "Access item page. Add, edit and delete items."},
             {name: "Inventory", description: "Access inventory page. Filter inventory."},
+            {name: "Order", description: "Access order page. Make an order that is going out of the warehouse."},
         ];
         const addedPermissions = [];
         
@@ -66,6 +67,13 @@ const seed = async () => {
     ];
 
     await Database.models.MeasureModel.bulkCreate(bulkMeasures);
+
+    const bulkDirections = [
+        {name: "In"},
+        {name: "Out"},
+    ];
+
+    await Database.models.DirectionModel.bulkCreate(bulkDirections);
 
     console.log("Seeding done!");
 }
