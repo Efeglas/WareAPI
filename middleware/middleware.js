@@ -82,3 +82,10 @@ module.exports.accessRightInventory = async (req, res, next) => {
     req.midw.accessRight.push(5);
     next();
 }
+
+module.exports.accessRightOrder = async (req, res, next) => {
+
+    accessRightExists(req);
+    req.midw.accessRight.push(6);
+    next();
+}
