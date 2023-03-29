@@ -7,10 +7,11 @@ const { Op } = require('sequelize');
 const {
     autenticated,
     hasAccess,
-    accessRightItem
+    accessRightItem,
+    accessRightOrder,
 } = require("../middleware/middleware.js");
 
-router.post('/get', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
+router.post('/get', autenticated, accessRightItem, accessRightOrder, hasAccess, async (req, res, next) => {
 
     const result = await Database.models.ItemModel.findAll({attributes: ['id', 'name', 'barcode'], where: {visible: 1}, include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]});
     res.json({ message: "Items accessed", data: result});
