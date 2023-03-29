@@ -36,8 +36,11 @@ router.post('/home', autenticated, async (req, res, next) => {
     });
     
     const user = await Database.models.UserModel.findAndCountAll({ where: {visible: 1} });
+
+    const orderin = await Database.models.OrderModel.findAndCountAll({ where: {visible: 1, closed: {[Op.not]: null}, DirectionId: 1} });
+    const orderout = await Database.models.OrderModel.findAndCountAll({ where: {visible: 1, closed: {[Op.not]: null}, DirectionId: 2} });
     
-    res.json({ message: "Home screen", l:counts.l, m:counts.m, kg:counts.kg, pcs:counts.pcs, user:user.count, orderout:102, orderin:106});
+    res.json({ message: "Home screen", l:counts.l, m:counts.m, kg:counts.kg, pcs:counts.pcs, user:user.count, orderout:orderout.count, orderin:orderin.count});
     return 
 })
 
