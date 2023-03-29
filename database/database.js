@@ -14,6 +14,9 @@ const ItemModel = require("./models/item-model.js");
 const MeasureModel = require("./models/measure-model.js");
 const ShelfModel = require("./models/shelf-model.js");
 const LayoutModel = require("./models/layout-model.js");
+const OrderModel = require("./models/order-model.js");
+const DirectionModel = require("./models/direction-model.js");
+const OrderItemModel = require("./models/order-item-model.js");
 
 class Database {
     constructor() {
@@ -40,7 +43,7 @@ class Database {
         this.sequelize = new Sequelize(database, user, password, {
             host: host,
             dialect: dialect,
-            timezone:"+01:00"
+            timezone:"+0:00"
         });
             
         try {
@@ -63,6 +66,9 @@ class Database {
             MeasureModel.init(this.sequelize);
             ShelfModel.init(this.sequelize);
             LayoutModel.init(this.sequelize);
+            OrderModel.init(this.sequelize);
+            DirectionModel.init(this.sequelize);
+            OrderItemModel.init(this.sequelize);
     
             //? USER AND ROLE HANDLING RELATIONS
             UserModel.belongsTo(RoleModel);
@@ -91,9 +97,24 @@ class Database {
 
             ShelfModel.belongsTo(LayoutModel);
             LayoutModel.hasMany(ShelfModel);
+
+            OrderModel.belongsTo(UserModel);
+            UserModel.hasMany(OrderModel); 
+            OrderModel.belongsTo(DirectionModel);
+            DirectionModel.hasMany(OrderModel); 
+
+            //? OREDER ITEM
+            OrderItemModel.belongsTo(OrderModel);
+            OrderModel.hasMany(OrderItemModel);
+
+            OrderItemModel.belongsTo(ShelfModel);
+            ShelfModel.hasMany(OrderItemModel);
+
+            OrderItemModel.belongsTo(ItemModel);
+            ItemModel.hasMany(OrderItemModel);
                 
             this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel, RefreshTokenModel,
-                 InventoryModel, ItemModel, MeasureModel, ShelfModel, LayoutModel};
+                 InventoryModel, ItemModel, MeasureModel, ShelfModel, LayoutModel, OrderModel, DirectionModel, OrderItemModel};
 
         } catch (error) {
             console.error('Unable to connect to the database:', error.parent.sqlMessage);
