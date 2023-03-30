@@ -9,7 +9,8 @@ const {
     hasAccess,
     accessRightRole,
     accessRightUser,
-    accessRightLayout
+    accessRightLayout,
+    accessRightOrder
 } = require("../middleware/middleware.js");
 
 router.post('/get', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
@@ -34,6 +35,15 @@ router.post('/shelves', autenticated, accessRightLayout, hasAccess, async (req, 
     const data = req.body;
 
     const resultShelves = await Database.models.ShelfModel.findAll({where: {LayoutId: data.layout, visible: 1}});
+   
+    res.json({ message: "Shelves loaded", data: resultShelves});
+    return 
+})
+
+router.post('/shelves/all', autenticated, accessRightLayout, accessRightOrder, hasAccess, async (req, res, next) => {
+    const data = req.body;
+
+    const resultShelves = await Database.models.ShelfModel.findAll({where: { visible: 1}});
    
     res.json({ message: "Shelves loaded", data: resultShelves});
     return 
