@@ -42,8 +42,7 @@ class Database {
                
         this.sequelize = new Sequelize(database, user, password, {
             host: host,
-            dialect: dialect,
-            timezone:"+0:00"
+            dialect: dialect,         
         });
             
         try {
@@ -69,6 +68,7 @@ class Database {
             OrderModel.init(this.sequelize);
             DirectionModel.init(this.sequelize);
             OrderItemModel.init(this.sequelize);
+            //await OrderItemModel.sync({ alter: true }); 
     
             //? USER AND ROLE HANDLING RELATIONS
             UserModel.belongsTo(RoleModel);
