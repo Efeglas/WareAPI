@@ -13,7 +13,10 @@ class OrderItemModel extends Model {
                     type: DataTypes.FLOAT,      
                     allowNull: false                          
                 },                                             
-                       
+                shelflevel: {
+                    type: DataTypes.INTEGER,      
+                    allowNull: false                          
+                }
             },
             {
                 sequelize,
