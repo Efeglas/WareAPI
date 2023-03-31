@@ -30,14 +30,14 @@ router.post('/add', autenticated, accessRightItem, hasAccess, async (req, res, n
     res.json({ message: "Items added"});
 })
 
-router.post('/edit', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
+router.patch('/edit', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
 
     const data = req.body;
     const item = await Database.models.ItemModel.update({name: data.name, barcode: data.barcode, MeasureId: data.measure}, {where: {id: data.id}});
     res.json({ message: "Items edited"});
 })
 
-router.post('/delete', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
+router.delete('/delete', autenticated, accessRightItem, hasAccess, async (req, res, next) => {
     
     const data = req.body;
     const item = await Database.models.ItemModel.update({visible: 0}, {where: {id: data.id}});

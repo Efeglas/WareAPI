@@ -44,14 +44,14 @@ router.post('/plain', autenticated, accessRightUser, hasAccess, async (req, res,
     return
 })
 
-router.post('/rename', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
+router.patch('/rename', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
     const data = req.body;
 
     const updatedRole = await Database.models.RoleModel.update({name: data.name}, {where: {id: data.id}});
     res.json({ message: "Role renamed", data: updatedRole});
 })
 
-router.post('/delete', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
+router.delete('/delete', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
     const data = req.body;
 
     const resultUsers = await Database.models.UserModel.findAll({where: {RoleId: data.role}});

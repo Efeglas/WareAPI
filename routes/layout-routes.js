@@ -58,7 +58,7 @@ router.post('/shelves/add', autenticated, accessRightLayout, hasAccess, async (r
     return 
 })
 
-router.post('/shelves/delete', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
+router.delete('/shelves/delete', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
     const data = req.body;
 
     const inventory = await Database.models.InventoryModel.findAll({where: {ShelfId: data.id}});
@@ -75,7 +75,7 @@ router.post('/shelves/delete', autenticated, accessRightLayout, hasAccess, async
     }
 })
 
-router.post('/shelves/edit', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
+router.patch('/shelves/edit', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
     const data = req.body;
 
     const resultShelves = await Database.models.ShelfModel.update({name: data.name}, {where: {id: data.id}});
@@ -83,7 +83,7 @@ router.post('/shelves/edit', autenticated, accessRightLayout, hasAccess, async (
     return 
 })
     
-router.post('/delete', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
+router.delete('/delete', autenticated, accessRightLayout, hasAccess, async (req, res, next) => {
     const data = req.body;
 
     const shelves = await Database.models.ShelfModel.findAll({where: {LayoutId: data.id}});
