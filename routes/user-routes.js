@@ -108,7 +108,7 @@ router.post('/password/reset',  autenticated, accessRightRole, hasAccess, async 
 
   console.log(`SMTP: username: ${data.username}, pass: ${tempPassword}`);
 
-  res.json({ message: "Permissions changed"});
+  res.json({ message: "Password reset completed"});
   
 })
 
@@ -229,7 +229,7 @@ router.post('/register', autenticated, accessRightUser, hasAccess, async (req, r
     res.json({ message: "User created, email sent"}); 
 });
 
-router.post('/delete', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
+router.delete('/delete', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
   
   const data = req.body;
 
@@ -240,7 +240,7 @@ router.post('/delete', autenticated, accessRightUser, hasAccess, async (req, res
   res.json({ message: "User deleted"});
 });
 
-router.post('/edit', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
+router.patch('/edit', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
   
   const data = req.body;
 
