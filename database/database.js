@@ -17,6 +17,7 @@ const LayoutModel = require("./models/layout-model.js");
 const OrderModel = require("./models/order-model.js");
 const DirectionModel = require("./models/direction-model.js");
 const OrderItemModel = require("./models/order-item-model.js");
+const PriceModel = require("./models/price-model.js");
 
 class Database {
     constructor() {
@@ -68,6 +69,7 @@ class Database {
             OrderModel.init(this.sequelize);
             DirectionModel.init(this.sequelize);
             OrderItemModel.init(this.sequelize);
+            PriceModel.init(this.sequelize);
             //await OrderItemModel.sync({ alter: true }); 
     
             //? USER AND ROLE HANDLING RELATIONS
@@ -92,6 +94,9 @@ class Database {
             ItemModel.belongsTo(MeasureModel);
             MeasureModel.hasMany(ItemModel);
 
+            PriceModel.belongsTo(ItemModel);
+            ItemModel.hasMany(PriceModel);
+
             InventoryModel.belongsTo(ShelfModel);
             ShelfModel.hasMany(InventoryModel);
 
@@ -112,9 +117,12 @@ class Database {
 
             OrderItemModel.belongsTo(ItemModel);
             ItemModel.hasMany(OrderItemModel);
+
+            OrderItemModel.belongsTo(PriceModel);
+            PriceModel.hasMany(OrderItemModel);
                 
             this.models = {UserModel, PasswordModel, RoleModel, PermissionModel, RolePermissionModel, RefreshTokenModel,
-                 InventoryModel, ItemModel, MeasureModel, ShelfModel, LayoutModel, OrderModel, DirectionModel, OrderItemModel};
+                 InventoryModel, ItemModel, MeasureModel, ShelfModel, LayoutModel, OrderModel, DirectionModel, OrderItemModel, PriceModel};
 
         } catch (error) {
             console.error('Unable to connect to the database:', error.parent.sqlMessage);
