@@ -49,7 +49,14 @@ router.post('/get', autenticated, accessRightInventory, hasAccess, async (req, r
     const resultInventory = await Database.models.InventoryModel.findAll({
         attributes: ['id', 'shelflevel', 'quantity'], 
         include: [
-            {model: Database.models.ItemModel, attributes: ['id', 'name', 'barcode'], include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]},
+            {
+                model: Database.models.ItemModel, 
+                attributes: ['id', 'name', 'barcode'], 
+                include: [
+                    {model: Database.models.MeasureModel, attributes: ['id', 'name']},
+                    {model: Database.models.PriceModel, attributes: ['id', 'price'], where: {visible: 1}}
+                ]
+            },
             {model: Database.models.ShelfModel, attributes: ['id', 'name', 'levels', 'x1', 'y1', 'x2', 'y2', 'LayoutId']}
         ]});
 
