@@ -155,7 +155,8 @@ router.post('/orderitem/add', autenticated, accessRightOrder, hasAccess, async (
  
   const data = req.body;
 
-  const orderitem = await Database.models.OrderItemModel.create({quantity: data.quantity, shelflevel: data.shelflevel, OrderId: data.order, ShelfId: data.shelf, ItemId: data.item});
+  const price = await Database.models.PriceModel.findOne({where: {visible: 1, ItemId: data.item}});
+  const orderitem = await Database.models.OrderItemModel.create({quantity: data.quantity, shelflevel: data.shelflevel, OrderId: data.order, ShelfId: data.shelf, ItemId: data.item, PriceId: price.id});
   
   res.json({ message: "Order item created" });
   return   
@@ -175,7 +176,8 @@ router.patch('/orderitem/edit', autenticated, accessRightOrder, hasAccess, async
  
   const data = req.body;
   
-  const orderitem = await Database.models.OrderItemModel.update({quantity: data.quantity, shelflevel: data.shelflevel, ShelfId: data.shelf, ItemId: data.item}, {where: {OrderId: data.order}});
+  const price = await Database.models.PriceModel.findOne({where: {visible: 1, ItemId: data.item}});
+  const orderitem = await Database.models.OrderItemModel.update({quantity: data.quantity, shelflevel: data.shelflevel, ShelfId: data.shelf, ItemId: data.item, PriceId: price.id}, {where: {OrderId: data.order}});
   
   res.json({ message: "Order item edited" });
   return   
@@ -194,7 +196,8 @@ router.post('/:id', autenticated, accessRightOrder, hasAccess, async (req, res, 
         attributes: ['id', 'quantity', 'shelflevel'], 
         include: [
           {model: Database.models.ShelfModel, attributes: ['id', 'name']}, 
-          {model: Database.models.ItemModel, attributes: ['id', 'name', 'barcode'], include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]}
+          {model: Database.models.ItemModel, attributes: ['id', 'name', 'barcode'], include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]},
+          {model: Database.models.PriceModel, attributes: ['id', 'price', 'visible']}
         ]},
     ],
   });
@@ -210,7 +213,8 @@ router.post('/:id/orderitems', autenticated, accessRightOrder, hasAccess, async 
     attributes: ['id', 'quantity', 'shelflevel'], 
     include: [
       {model: Database.models.ShelfModel, attributes: ['id', 'name']}, 
-      {model: Database.models.ItemModel, attributes: ['id', 'name', 'barcode'], include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]}
+      {model: Database.models.ItemModel, attributes: ['id', 'name', 'barcode'], include: [{model: Database.models.MeasureModel, attributes: ['id', 'name']}]},
+      {model: Database.models.PriceModel, attributes: ['id', 'price', 'visible']}
     ]
   });
 
