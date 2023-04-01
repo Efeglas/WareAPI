@@ -27,7 +27,7 @@ router.post('/', autenticated, accessRightOrder, hasAccess, async (req, res, nex
     return   
 })
 
-router.post('/delete', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
+router.delete('/delete', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
   const data = req.body;
  
   const order = await Database.models.OrderModel.update({visible: 0}, {where: {id: data.order}});
@@ -161,7 +161,7 @@ router.post('/orderitem/add', autenticated, accessRightOrder, hasAccess, async (
   return   
 })
 
-router.post('/orderitem/delete', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
+router.delete('/orderitem/delete', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
  
   const data = req.body;
   
@@ -171,7 +171,7 @@ router.post('/orderitem/delete', autenticated, accessRightOrder, hasAccess, asyn
   return   
 })
 
-router.post('/orderitem/edit', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
+router.patch('/orderitem/edit', autenticated, accessRightOrder, hasAccess, async (req, res, next) => {
  
   const data = req.body;
   
