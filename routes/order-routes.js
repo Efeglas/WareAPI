@@ -177,7 +177,7 @@ router.patch('/orderitem/edit', autenticated, accessRightOrder, hasAccess, async
   const data = req.body;
   
   const price = await Database.models.PriceModel.findOne({where: {visible: 1, ItemId: data.item}});
-  const orderitem = await Database.models.OrderItemModel.update({quantity: data.quantity, shelflevel: data.shelflevel, ShelfId: data.shelf, ItemId: data.item, PriceId: price.id}, {where: {OrderId: data.order}});
+  const orderitem = await Database.models.OrderItemModel.update({quantity: data.quantity, shelflevel: data.shelflevel, ShelfId: data.shelf, ItemId: data.item, PriceId: price.id}, {where: {id: data.orderitem}});
   
   res.json({ message: "Order item edited" });
   return   
