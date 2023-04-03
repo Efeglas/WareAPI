@@ -4,6 +4,9 @@ const jwToken = require('jsonwebtoken');
 const router = express.Router();
 const { config } = require('../config/config.js');
 const { Op } = require('sequelize');
+const RoleController = require('../controllers/RoleController.js');
+const Validator = require('../Validator/Validator.js');
+const { validatePositiveNumber, validateNotEmpty, validateChecks } = require('../utility/validate.js');
 const {
     autenticated,
     hasAccess,
@@ -13,71 +16,106 @@ const {
 
 router.post('/', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
     const data = req.body;
-   
-    const roles = await Database.models.RoleModel.findAll({                
-        attributes: ['id', "name"], 
-        where: {visible: 1}, 
-        include: [{model: Database.models.PermissionModel, attributes: ['id', 'name', 'description']}]
-    });         
 
-    const convertedRoles = roles.map((role) => {
-        return role.get({ plain: true });
-    });
+    const {valid, errors} = Validator.validate(data, {});
+  
+    if (!valid) {
+      res.status(404).json({ message: "Resource not found" });
+      return;
+    }
+  
+    const {status, message, data: contrData} = await RoleController.getRoles();
 
-    res.json({ message: "Roles accessed", data: convertedRoles});
-    return   
+    res.status(status).json({ message: message, data: contrData});
+    return;
 })
 
 router.post('/plain', autenticated, accessRightUser, hasAccess, async (req, res, next) => {
     const data = req.body;
-    
-    const roles = await Database.models.RoleModel.findAll({                
-        attributes: ['id', "name"], 
-        where: {visible: 1},              
-    });         
 
-    const convertedRoles = roles.map((role) => {
-        return role.get({ plain: true });
+    const {valid, errors} = Validator.validate(data, {});
+  
+    if (!valid) {
+      res.status(404).json({ message: "Resource not found" });
+      return;
+    }
+  
+    const {status, message, data: contrData} = await RoleController.getPlainRoles();
+
+    res.status(status).json({ message: message, data: contrData});
+    return;
+})
+
+router.patch('/', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
+    const data = req.body;
+
+    const {valid, errors} = Validator.validate(data, {
+        name: validateNotEmpty,
+        id: validatePositiveNumber
+    });
+  
+    if (!valid) {
+      res.status(404).json({ message: "Resource not found" });
+      return;
+    }
+
+    const {status, message, data: contrData} = await RoleController.editRole(data);
+
+    res.status(status).json({ message: message, data: contrData});
+    return;
+})
+
+router.delete('/', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
+    const data = req.body;
+
+    const {valid, errors} = Validator.validate(data, {      
+        role: validatePositiveNumber
     });
 
-    res.json({ message: "Roles accessed", data: convertedRoles});
-    return
-})
-
-router.patch('/rename', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
-    const data = req.body;
-
-    const updatedRole = await Database.models.RoleModel.update({name: data.name}, {where: {id: data.id}});
-    res.json({ message: "Role renamed", data: updatedRole});
-})
-
-router.delete('/delete', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
-    const data = req.body;
-
-    const resultUsers = await Database.models.UserModel.findAll({where: {RoleId: data.role}});
-            
-    if (resultUsers.length > 0) {
-        res.status(406).json({ message: "Role attached to user"});
-    } else {
-        const updatedRole = await Database.models.RoleModel.update({visible: 0}, {where: {id: data.role}});
-        const resultConnections = await Database.models.RolePermissionModel.destroy({where: {RoleId: data.role}});
-        res.json({ message: "Role deleted"});
+    if (!valid) {
+        res.status(404).json({ message: "Resource not found" });
+        return;
     }
+    
+    const {status, message, data: contrData} = await RoleController.deleteRole(data);
+
+    res.status(status).json({ message: message, data: contrData});
+    return;
 })
 
 router.post('/add', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
     const data = req.body;
 
-    await Database.models.RoleModel.create({name: data.name});
-    res.json({ message: "Role added"});
+    const {valid, errors} = Validator.validate(data, {      
+        name: validateNotEmpty
+    });
+
+    if (!valid) {
+        res.status(404).json({ message: "Resource not found" });
+        return;
+    }
+    
+    const {status, message, data: contrData} = await RoleController.addRole(data);
+
+    res.status(status).json({ message: message, data: contrData});
+    return;
 })
 
 router.post('/permissions', autenticated, accessRightRole, hasAccess, async (req, res, next) => {
 
     const data = req.body;
 
-    const permissions = await Database.models.PermissionModel.findAll({attributes: ['id', 'name', 'description']});
-    res.json({ message: "Permissions accessed", data: permissions});
+    const {valid, errors} = Validator.validate(data, {});
+
+    if (!valid) {
+        res.status(404).json({ message: "Resource not found" });
+        return;
+    }
+    
+    const {status, message, data: contrData} = await RoleController.getPermissions();
+
+    res.status(status).json({ message: message, data: contrData});
+    return;
 })
 
 
@@ -85,22 +123,20 @@ router.post('/permissions/save', autenticated, accessRightRole, hasAccess, async
 
     const data = req.body;
 
-    if (data.role === 1) {
-        res.status(401).json({ message: "Default user, restricted"});
+    const {valid, errors} = Validator.validate(data, {
+        role: validatePositiveNumber,
+        checks: validateChecks
+    });
+
+    if (!valid) {
+        res.status(404).json({ message: "Resource not found" });
         return;
     }
+    
+    const {status, message, data: contrData} = await RoleController.savePermissions(data);
 
-    const bulkCreateArray = [];
-    for (const key in data.checks) {
-        if (data.checks[key].value) {
-            bulkCreateArray.push({RoleId: data.role, PermissionId: key});
-        }
-    }
-
-    await Database.models.RolePermissionModel.destroy({where: { RoleId: data.role }});
-    await Database.models.RolePermissionModel.bulkCreate(bulkCreateArray);           
-
-    res.json({ message: "Permissions changed"}); 
+    res.status(status).json({ message: message, data: contrData});
+    return;
 })
 
 module.exports = router;
