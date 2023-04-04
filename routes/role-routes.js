@@ -1,9 +1,5 @@
-const Database = require('../database/database.js');
 const express = require('express');
-const jwToken = require('jsonwebtoken');
 const router = express.Router();
-const { config } = require('../config/config.js');
-const { Op } = require('sequelize');
 const RoleController = require('../controllers/RoleController.js');
 const Validator = require('../Validator/Validator.js');
 const { validatePositiveNumber, validateNotEmpty, validateChecks } = require('../utility/validate.js');
