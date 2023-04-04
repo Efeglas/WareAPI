@@ -6,6 +6,10 @@ module.exports.validatePositiveNumber = (value) => {
     return /^[0-9]+$/.test(value) && Number(value) > 0;
 }
 
+module.exports.validatePositiveNumberWithZero = (value) => {
+    return /^[0-9]+$/.test(value) && Number(value) >= 0;
+}
+
 module.exports.validatePositiveFloat = (value) => {
     if (isNaN(value)) {
         return false;
@@ -55,4 +59,13 @@ module.exports.validateChecks = (value) => {
     } else {
         return false;
     }
+}
+
+module.exports.validateRefreshtoken = (value) => {
+    const regex = /^[a-z0-9]+\.[a-z0-9]+$/i;
+    return regex.test(value);
+}
+
+module.exports.validateDefaultSelect = (value) => {
+    return value !== "0";
 }
