@@ -71,3 +71,8 @@ module.exports.generateUsername = async (lastName, database) => {
   } while (userExists !== null);
 
 }
+
+module.exports.controllerUnexpectedError = async (error) => {
+  console.error(error.message);
+  return {status: 500, message: `Unexpected error`, data: []};
+}
