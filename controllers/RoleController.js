@@ -1,4 +1,5 @@
 const Database = require('../database/database.js');
+const {controllerUnexpectedError} = require('../utility/utility.js');
 
 class RoleController {
 
@@ -16,7 +17,7 @@ class RoleController {
                  
             return {status: 200, message: `Roles accessed`, data: convertedRoles};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getUserProfile()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 
@@ -34,7 +35,7 @@ class RoleController {
                   
             return {status: 200, message: `Roles accessed`, data: convertedRoles};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getPlainRoles()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }      
     }
 
@@ -45,7 +46,7 @@ class RoleController {
             const updatedRole = await Database.models.RoleModel.update({name: data.name}, {where: {id: data.id}});            
             return {status: 200, message: `Role renamed`, data: updatedRole};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'editRole()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 
@@ -64,7 +65,7 @@ class RoleController {
                 return {status: 200, message: `Role deleted`, data: []};
             }
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'deleteRole()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 
@@ -74,7 +75,7 @@ class RoleController {
             await Database.models.RoleModel.create({name: data.name});          
             return {status: 200, message: `Role added`, data: []};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'addRole()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 
@@ -84,7 +85,7 @@ class RoleController {
             const permissions = await Database.models.PermissionModel.findAll({attributes: ['id', 'name', 'description']});            
             return {status: 200, message: `Permissions accessed`, data: permissions};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getPermissions()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 
@@ -107,7 +108,7 @@ class RoleController {
                   
             return {status: 200, message: `Permissions changed`, data: []};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getPermissions()'}]`, data: []};
+            return controllerUnexpectedError(error);
         }
     }
 }

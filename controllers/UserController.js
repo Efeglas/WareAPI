@@ -5,12 +5,10 @@ const jwToken = require('jsonwebtoken');
 const { Op } = require('sequelize');
 const { 
     generateRefreshToken, 
-    getCorrectedDate, 
-    toNormalForm, 
-    generate2Char, 
     generateTemporaryPass,
     generateUsername
   } = require('../utility/utility.js');
+const {controllerUnexpectedError} = require('../utility/utility.js');
 
 class UserController {
     
@@ -30,7 +28,7 @@ class UserController {
                 return {status: 406, message: `User data not found`, data: []};
               }
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getUserProfile()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }       
     }
 
@@ -45,7 +43,7 @@ class UserController {
                     
             return {status: 200, message: `Users accessed`, data: users};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'getUsers()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -88,7 +86,7 @@ class UserController {
             }
 
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'changePassword()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -104,7 +102,7 @@ class UserController {
             console.log(`SMTP: username: ${data.username}, pass: ${tempPassword}`);
             return {status: 200, message: `Password restored`, data: []};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'resetPassword()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -175,7 +173,7 @@ class UserController {
                 }
               }
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'login()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }      
     }
 
@@ -195,7 +193,7 @@ class UserController {
               
               return {status: 200, message: `Logged out successfully`, data: []}
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'logout()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -222,7 +220,7 @@ class UserController {
             return {status: 200, message: `User created, email sent`, data: []};
     
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'register()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -236,7 +234,7 @@ class UserController {
                        
               return {status: 200, message: `User deleted`, data: []};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'deleteUser()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 
@@ -253,7 +251,7 @@ class UserController {
                        
               return {status: 200, message: `User updated`, data: []};
         } catch (error) {
-            return {status: 500, message: `Unexpected error [${'editUser()'}]`, data: []};
+          return controllerUnexpectedError(error);
         }
     }
 }
