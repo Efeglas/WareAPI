@@ -7,7 +7,11 @@ module.exports.autenticated = (req, res, next) => {
 
     req.midw = {};
     try {      
-        req.midw.decodedToken = jwToken.verify(data.token, config.jwtKey);     
+        if (data.token !== undefined) {
+            req.midw.decodedToken = jwToken.verify(data.token, config.jwtKey);     
+        } else {
+            req.midw.decodedToken = jwToken.verify(req.query.token, config.jwtKey); 
+        }
         next();
     } catch (error) {      
       res.status(406).json({ message: "Wrong token", error: error.message });
@@ -87,5 +91,12 @@ module.exports.accessRightOrder = async (req, res, next) => {
 
     accessRightExists(req);
     req.midw.accessRight.push(6);
+    next();
+}
+
+module.exports.accessRightStat = async (req, res, next) => {
+
+    accessRightExists(req);
+    req.midw.accessRight.push(7);
     next();
 }
