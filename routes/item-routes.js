@@ -5,13 +5,14 @@ const {
     hasAccess,
     accessRightItem,
     accessRightOrder,
+    accessRightStat
 } = require("../middleware/middleware.js");
 
 const Validator = require('../Validator/Validator.js');
 const ItemController = require('../controllers/ItemController.js');
 const { validateNotEmpty, validatePositiveNumber, validateDefaultSelect } = require('../utility/validate.js');
 
-router.post('/get', autenticated, accessRightItem, accessRightOrder, hasAccess, async (req, res, next) => {
+router.post('/get', autenticated, accessRightItem, accessRightStat, accessRightOrder, hasAccess, async (req, res, next) => {
 
     const data = req.body;
 
