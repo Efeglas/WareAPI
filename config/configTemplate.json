@@ -10,5 +10,14 @@
     "jwtKey": "secretkey",
     "bcrypt": {
         "saltRounds": 2
-    }
+    },
+    "jwtTokenExpMinutes": 1,
+    "refreshTokenValidDay": 1,
+    "infoPage": [
+        {
+            "fullName": "Admin User",
+            "email": "admin@racky.com",
+            "phone": "+3630555666"
+        }
+    ]
 }
