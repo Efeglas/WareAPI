@@ -76,3 +76,25 @@ module.exports.controllerUnexpectedError = async (error) => {
   console.error(error.message);
   return {status: 500, message: `Unexpected error`, data: []};
 }
+
+module.exports.getMonthsBetween = (startDate, endDate) => {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const months = [];
+  const codes = [];
+
+  let currentDate = start;
+  while (currentDate <= end) {
+    const monthName = currentDate.toLocaleString('en-US', { month: 'long' });
+
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() + 1;
+    const formattedMonth = `${year}-${month.toString().padStart(2, '0')}`;
+    
+    months.push(`${currentDate.getFullYear()} ${monthName}`);
+    codes.push(formattedMonth);
+    currentDate = new Date(currentDate.setMonth(currentDate.getMonth() + 1));
+  }
+
+  return {months: months, codes: codes};
+}
