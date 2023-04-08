@@ -106,7 +106,7 @@ class OrderController {
               }  
           
               if (errorArray.length > 0) {
-                return {status: 200, message: `Can not close order`, data: []};
+                return {status: 200, message: `Can not close order`, data: {error: errorArray}};
               } else {
                     
                 for (const action of actionArray) {
