@@ -43,6 +43,7 @@ const seed = async () => {
             {name: "Item", description: "Access item page. Add, edit and delete items."},
             {name: "Inventory", description: "Access inventory page. Filter inventory."},
             {name: "Order", description: "Access order page. Make an order that is going out of the warehouse."},
+            {name: "Statistics", description: "Access to statistics"},
         ];
         const addedPermissions = [];
         
@@ -56,7 +57,6 @@ const seed = async () => {
             
             await Database.models.RolePermissionModel.create({RoleId: adminRole.id, PermissionId: addedPerm.id});
         }
-
     }
 
     const bulkMeasures = [
