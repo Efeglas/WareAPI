@@ -227,12 +227,16 @@ class UserController {
     static async deleteUser (data) {
 
         try {
-            
-            let updatedUser = await Database.models.UserModel.update({            
-                visible: 0
-            }, {where: {id: data.id}});
+
+          if (data.id === 1) {
+            return {status: 406, message: `Can't delete user`, data: []};
+          }
+          
+          let updatedUser = await Database.models.UserModel.update({            
+              visible: 0
+          }, {where: {id: data.id}});
                        
-              return {status: 200, message: `User deleted`, data: []};
+          return {status: 200, message: `User deleted`, data: []};
         } catch (error) {
           return controllerUnexpectedError(error);
         }
