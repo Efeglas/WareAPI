@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Validator = require('../Validator/Validator.js');
 const UserController = require('../controllers/UserController.js');
+const jwToken = require('jsonwebtoken');
+const { config } = require('../config/config.js');
 
 const { validatePositiveNumber, validateNotEmpty, validatePhone, validateEmail } = require('../utility/validate.js');
 const {
