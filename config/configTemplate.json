@@ -13,6 +13,7 @@
     },
     "jwtTokenExpMinutes": 1,
     "refreshTokenValidDay": 1,
+    "userEnd": "hrt",
     "infoPage": [
         {
             "fullName": "Admin User",
