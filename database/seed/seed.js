@@ -80,4 +80,4 @@ const seed = async () => {
 
 setTimeout(() =>{
     seed();
-}, 5000);
+}, 3000);
