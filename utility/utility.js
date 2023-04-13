@@ -1,4 +1,4 @@
-//const {getRandomInteger} = require("./utility.js");
+const { config } = require('../config/config.js');
 
 module.exports.getCorrectedDate = (hoursToCorrect) => {
   let currentDate = new Date();
@@ -49,7 +49,7 @@ module.exports.generateUsername = async (lastName, database) => {
   let number = 1;     
   let userBegining = toNormalFormHere(lastName.substring(0, 2));
   let randomChars = generate2CharHere();
-  let userFix = "hrt";
+  let userFix = config.userEnd;
   
   let userExists = null;
 
